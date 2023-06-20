@@ -1,10 +1,10 @@
-using JWT.Data;
-
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>().AddEntityFrameworkStores<ApplicationDbContext>();
+
+builder.Services.AddScoped<IAuth, AuthRepo>();
 
 
 builder.Services.AddDbContext<ApplicationDbContext>(option =>

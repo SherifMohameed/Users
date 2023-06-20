@@ -9,7 +9,7 @@ namespace JWT.Data
         public static void ConfigurationJWT(this IServiceCollection services)
         {
             var context = services.BuildServiceProvider().GetService<ApplicationDbContext>();
-            JWTConfiguration jWT = JWTConfiguration.GetInstance(context);
+            JWTConfiguration jWT = JWTConfiguration.CreateInstance(context);
 
             services.AddAuthentication(option =>
             {

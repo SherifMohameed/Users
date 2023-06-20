@@ -9,7 +9,7 @@ namespace JWT.Models
     public class JWTConfiguration
     {
         private static JWTConfiguration _instance = null;
-
+        private static ApplicationDbContext _context;
 
         [Key]
         public int ID { get; set; }
@@ -22,9 +22,21 @@ namespace JWT.Models
         [Required]
         public double DurationInDays { get; set; }
 
-        public static JWTConfiguration GetInstance(ApplicationDbContext _context)
+        public static JWTConfiguration CreateInstance(ApplicationDbContext context)
         {
-            _instance ??= _context.JWTConfigurations.FirstOrDefault(f => f.ID == 1);
+            lock (_instance)
+            {
+                _context = context;
+                _instance ??= _context.JWTConfigurations.FirstOrDefault(f => f.ID == 1);
+            }
+
+            return _instance;
+        }
+
+        public static JWTConfiguration GetInstance()
+        {
+            if (_instance == null)
+                CreateInstance(_context);
 
             return _instance;
         }
