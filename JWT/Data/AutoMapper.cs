@@ -6,7 +6,7 @@ namespace JWT.Data
     {
         public MappingProfile()
         {
-            CreateMap<ApplicationUser, RegisterRequest>();
+            CreateMap<RegisterRequest, ApplicationUser>();
 
         }
     }

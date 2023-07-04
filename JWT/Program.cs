@@ -5,6 +5,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>().AddEntityFrameworkStores<ApplicationDbContext>();
 
 builder.Services.AddScoped<IAuth, AuthRepo>();
+builder.Services.AddScoped<IRole, RoleRepo>();
 
 
 builder.Services.AddDbContext<ApplicationDbContext>(option =>

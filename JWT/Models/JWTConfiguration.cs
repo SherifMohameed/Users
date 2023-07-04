@@ -24,11 +24,9 @@ namespace JWT.Models
 
         public static JWTConfiguration CreateInstance(ApplicationDbContext context)
         {
-            lock (_instance)
-            {
-                _context = context;
-                _instance ??= _context.JWTConfigurations.FirstOrDefault(f => f.ID == 1);
-            }
+
+            _context = context;
+            _instance ??= _context.JWTConfigurations.FirstOrDefault(f => f.ID == 1);
 
             return _instance;
         }
@@ -41,4 +39,5 @@ namespace JWT.Models
             return _instance;
         }
     }
+
 }

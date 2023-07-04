@@ -1,6 +1,4 @@
-﻿using System.Text;
-
-namespace JWT.Services
+﻿namespace JWT.Services
 {
     public class AuthRepo : IAuth
     {
@@ -11,14 +9,15 @@ namespace JWT.Services
             _userManager = userManager;
         }
 
+
         public async Task<RegisterResponse> RegisterAsync(RegisterRequest request)
         {
 			try
 			{
-                if (_userManager.FindByEmailAsync(request.Email) is not null)
-                    return new() { Message = "There is alredy user have this mail" };
+                if (_userManager.FindByEmailAsync(request.Email).Result is not null)
+                        return new() { Message = "There is alredy user have this mail" };
 
-                if(_userManager.FindByNameAsync(request.UserName) is not null )
+                if(_userManager.FindByNameAsync(request.UserName).Result is not null )
                     return new() { Message = "There is alredy user have this user name" };
 
                 if(request.Password != request.ConfirmPassword)
@@ -34,7 +33,7 @@ namespace JWT.Services
 
                     result.Errors.ToList().ForEach(error =>
                     {
-                        errors += $"{error}, ";
+                        errors += $"{error.Description} \n";
                     });
 
                     errors.Remove(errors.Length - 2);
@@ -43,8 +42,21 @@ namespace JWT.Services
                 }
 
                 // add roles 
+                await _userManager.AddToRoleAsync(user, "User");
 
-                return new();
+                JwtSecurityToken jwtToken = await GenerateUserToken(user);
+
+
+                return new()
+                {
+                    Email = user.Email,
+                    ExpiresOn = jwtToken.ValidTo,
+                    IsAuthenticated = true,
+                    Roles = new() { "User"},
+                    Token = new JwtSecurityTokenHandler().WriteToken(jwtToken),
+                    UserName = user.UserName,
+                    Message = "Register Done Successfully"
+                };
             }
             catch (Exception ex)
 			{
@@ -52,7 +64,41 @@ namespace JWT.Services
 			}
         }
 
+        public async Task<RegisterResponse> GetTokenAsync(TokenRequest request)
+        {
+            try
+            {
+                RegisterResponse response = new();
 
+                ApplicationUser user = await _userManager.FindByNameAsync(request.UserName);
+
+                if(user != null || await _userManager.CheckPasswordAsync(user, request.Password))
+                {
+                    response.Message = "Invalid User Name or Password";
+                    return response;
+                }
+
+                JwtSecurityToken jwtToken = await GenerateUserToken(user);
+                IList<string> userRoles = await _userManager.GetRolesAsync(user);
+
+                response.Email = user.Email;
+                response.ExpiresOn = jwtToken.ValidTo;
+                response.IsAuthenticated = true;
+                response.Roles = userRoles.ToList();
+                response.Token = new JwtSecurityTokenHandler().WriteToken(jwtToken);
+                response.UserName = user.UserName;
+                response.Message = "Register Done Successfully";
+
+                return response;
+
+            }
+            catch (Exception ex)
+            {
+                return new() { Message = ex.Message + " " + ex.StackTrace };
+            }
+        }
+
+ 
         private async Task<JwtSecurityToken> GenerateUserToken(ApplicationUser user)
         {
             JWTConfiguration jWT = JWTConfiguration.GetInstance();
